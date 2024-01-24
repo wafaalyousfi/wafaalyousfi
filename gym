@@ -1,0 +1,1062 @@
+Add GYM  Page  
+<?php require 'header.php'; ?> 
+ 
+<?php 
+require 'conn.php'; 
+?> 
+ 
+<style> 
+    html, 
+    body { 
+        height: 100%; 
+        margin: 0; 
+        padding: 0; 
+    } 
+ 
+    .wrapper { 
+        min-height: 100%; 
+        display: flex; 
+        flex-direction: column; 
+    } 
+ 
+    .content { 
+        flex: 1; 
+    } 
+ 
+    .footer { 
+        background-color: #f8f9fa; 
+        padding: 20px; 
+        text-align: center; 
+    } 
+</style> 
+<div class="wrapper"> 
+    <div class="container"> 
+        <h3 style="color:blue; background-color: honeydew;" class="text-center mt-5"> ADD Branch</h3> 
+        <form method="POST" enctype="multipart/form-data" style="background-color: aliceblue;"> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="branch_name">NAME</label> 
+                    <input type="text" class="form-control" name="branch_name" id="branch_name" required> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="description">Description</label> 
+                    <input type="text" class="form-control" name="description" id="description" required> 
+                </div> 
+            </div> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="menu">Menu Price</label> 
+                    <input type="file" class="form-control" name="menu" id="menu" required> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="email">Email</label> 
+                    <input type="text" class="form-control" name="email" id="email" required> 
+                </div> 
+            </div> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="phone">Phone</label> 
+                    <input type="text" class="form-control" name="phone" id="phone" required> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="image">Image</label> 
+                    <input type="file" class="form-control" name="image" required> 
+                </div> 
+            </div> 
+            <div class="form-group"> 
+                <button type="submit" class="btn btn-primary btn-block" name="add">ADD</button> 
+            </div> 
+        </form> 
+    </div> 
+</div> 
+<footer class="footer"> 
+    <p>&copy; 2024 Flex GYM Web App. All rights reserved.</p> 
+</footer> 
+</body> 
+ 
+</html> 
+<?php 
+if (isset($_POST['add'])) { 
+    $branch_name = $_POST['branch_name']; 
+    $description = $_POST['description']; 
+    $menu_name = $_FILES['menu']['name']; 
+    $menu_tmp = $_FILES['menu']['tmp_name']; 
+    $email = $_POST['email']; 
+    $phone = $_POST['phone']; 
+    $image_name = $_FILES['image']['name']; 
+    $image_tmp = $_FILES['image']['tmp_name']; 
+ 
+    // Upload menu file 
+    $menu_folder = "menu/"; 
+    if (!move_uploaded_file($menu_tmp, $menu_folder . $menu_name)) { 
+        echo "<script> 
+            alert('Menu File Not Uploaded'); 
+        </script>"; 
+        exit; 
+    } 
+ 
+    // Upload image file 
+    $image_folder = "GYM/"; 
+    if (!move_uploaded_file($image_tmp, $image_folder . $image_name)) { 
+        echo "<script> 
+            alert('Image File Not Uploaded'); 
+        </script>"; 
+        exit; 
+    } 
+ 
+    require 'conn.php'; 
+    $stmt = $conn->prepare("INSERT INTO gym (branch_name, description, menu, email, phone, image) VALUES (?, ?, ?, ?, ?, ?)"); 
+    $stmt->bind_param("ssssss", $branch_name, $description, $menu_name, $email, $phone, $image_name); 
+    $result = $stmt->execute(); 
+ 
+    if ($result) { 
+        echo "<script> 
+            alert('Branch Added'); 
+            window.location = 'admin.php'; 
+        </script>"; 
+    } 
+} 
+?> 
+ 
+ 
+ 
+Admin page  
+<?php require 'header.php'; ?> 
+ 
+ 
+ 
+<?php 
+require 'conn.php'; 
+$user_id = $_SESSION['user_id']; 
+$sql = "select *  from gym"; 
+$stmt = $conn->query($sql); 
+$gyms = []; 
+while ($row = $stmt->fetch_assoc()) { 
+    $gyms[] = $row; 
+} 
+ 
+?> 
+ 
+<div class="container"> 
+    <h3 style="color:blue;background-color:aliceblue;" class="text-center mt-5">GYM List</h3> 
+    <a class="btn btn-primary mb-3 mt-3" href="add_gym.php">Add</a> 
+    <a class="btn btn-dark mb-3 mt-3" href="view_request.php">REQUESTED</a> 
+    <style> 
+        .table { 
+            border-collapse: collapse; 
+            margin: 25px 0; 
+            font-size: 0.9em; 
+            font-family: comic; 
+            min-width: 400px; 
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); 
+ 
+        } 
+ 
+        .table thead tr { 
+            background-color: blue; 
+            color: #ffffff; 
+            text-align: left; 
+        } 
+ 
+ 
+        .table td { 
+            padding: 12px 15px; 
+            background-color: whitesmoke; 
+            color: black; 
+            text-align: left; 
+        } 
+ 
+        .table tbody tr { 
+            border-bottom: 1px solid #dddddd; 
+        } 
+ 
+        .table tbody tr:nth-of-type(even) { 
+            background-color: #f3f3f3; 
+        } 
+ 
+        .table tbody tr:last-of-type { 
+            border-bottom: 2px solid blue; 
+        } 
+ 
+        .table tbody tr.active-row { 
+            font-weight: bold; 
+            color: blue; 
+        } 
+    </style> 
+    <table class="table"> 
+        <thead> 
+            <tr> 
+                <th>BRANCH NAME</th> 
+                <th>DESCRIPTION</th> 
+                <th>MENU</th> 
+                <th>PHONE</th> 
+                <th>EMAIL</th> 
+                <th>LOGO</th> 
+                <th>ACTION</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+ 
+ 
+ 
+            <?php foreach ($gyms as $gym) : ?> 
+                <tr> 
+                    <td> <?php echo $gym['branch_name'] ?> </td> 
+                    <td> <?php echo $gym['description'] ?> </td> 
+                    <td> 
+                        <a href="GYM/<?php echo $gym['menu']; ?>" download>Download Menu</a> 
+                    </td> 
+ 
+                    <td> <?php echo $gym['phone'] ?> </td> 
+                    <td> <?php echo $gym['email'] ?> </td> 
+ 
+                    <td> 
+                        <img width="150" height="100" src="GYM/<?php echo $gym['image'] ?>" class="rounded-circle" alt="Cinque Terre"> </img> 
+                    </td> 
+                    <td> 
+                        <a class="btn btn-warning text-white" href="edit_caravan.php?id=<?php echo $gym['id'] ?>" role="button">Update</a> 
+                        <a class="btn btn-danger" href="delete_caravan.php?id=<?php echo $gym['id'] ?>" role="button">Delete</a> 
+                    </td> 
+                </tr> 
+            <?php endforeach ?> 
+ 
+ 
+        </tbody> 
+    </table> 
+ 
+ 
+</div> 
+</body> 
+ 
+</html> 
+ 
+ 
+
+ 
+ 
+Conn page  
+ 
+<?php 
+ 
+$host = "localhost"; 
+$user = "root"; 
+$password = ""; 
+$db = "test"; 
+$conn = new mysqli($host , $user , $password , $db); 
+?> 
+ 
+ 
+ 
+Delete GYM page  
+ 
+<?php 
+ 
+require 'conn.php'; 
+$id = $_GET['id']; 
+$stmt =   $conn->prepare("delete from gym where id  = ? "); 
+ 
+ 
+$stmt->bind_param( "i" , $id); 
+$result = $stmt->execute(); 
+ 
+if($result){ 
+  
+       echo "<script> 
+       alert('GYM Branch Deleted'); 
+       window.location = 'admin.php'; 
+   </script>"; 
+ 
+} 
+ 
+ 
+ 
+Update GYM page  
+ 
+<?php require 'header.php'; ?> 
+ 
+<?php 
+require 'conn.php'; 
+ 
+$gym_id = $_GET['id']; // Getting the gym id from URL parameter 
+$sql = "SELECT * FROM gym WHERE id = '$gym_id'"; // Use the actual table name 
+$result = $conn->query($sql); 
+ 
+if ($row = $result->fetch_assoc()) { 
+    $gym['branch_name'] = $row['branch_name']; 
+    $gym['description'] = $row['description']; 
+    $gym['email'] = $row['email']; 
+} 
+?> 
+<style> 
+    html, 
+    body { 
+        height: 100%; 
+        margin: 0; 
+        padding: 0; 
+    } 
+ 
+    .wrapper { 
+        min-height: 100%; 
+        display: flex; 
+        flex-direction: column; 
+    } 
+ 
+    .content { 
+        flex: 1; 
+    } 
+ 
+    .footer { 
+        background-color: #f8f9fa; 
+        padding: 20px; 
+        text-align: center; 
+    } 
+</style> 
+<div class="wrapper"> 
+    <div class="container"> 
+        <h3 style="color:blue; background-color: honeydew;" class="text-center mt-5"> Edit GYM</h3> 
+        <form method="POST" enctype="multipart/form-data" style="background-color: aliceblue;"> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="caravan_name">NAME</label> 
+                    <input type="text" class="form-control" name="branch_name" id="branch_name" value="<?php echo $gym['branch_name']; ?>" required> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="description">Description</label> 
+                    <input type="text" class="form-control" name="description" id="description" value="<?php echo $gym['description']; ?>" required> 
+                </div> 
+            </div> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="menu">Menu list</label> 
+                    <input type="file" class="form-control" name="menu" id="menu"> 
+                    <small class="text-muted">Leave blank if you don't want to change the menu file.</small> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="email">Email</label> 
+                    <input type="text" class="form-control" name="email" id="email" value="<?php echo $gym['email']; ?>" required> 
+                </div> 
+            </div> 
+            <div class="form-row"> 
+                <div class="form-group col-md-6"> 
+                    <label for="phone">Phone</label> 
+                    <input type="file" class="form-control" name="phone" id="phone"> 
+                    <small class="text-muted">Leave blank if you don't want to change the phone file.</small> 
+                </div> 
+                <div class="form-group col-md-6"> 
+                    <label for="image">Image</label> 
+                    <input type="file" class="form-control" name="image"> 
+                    <small class="text-muted">Leave blank if you don't want to change the image file.</small> 
+                </div> 
+            </div> 
+            <div class="form-group"> 
+                <button type="submit" class="btn btn-primary btn-block" name="update">UPDATE</button> 
+            </div> 
+        </form> 
+    </div> 
+</div> 
+<footer class="footer"> 
+    <p>&copy; 2024 Flex GYM Web App. All rights reserved.</p> 
+</footer> 
+</body> 
+ 
+</html> 
+ 
+<?php 
+if (isset($_POST['update'])) { 
+    $branch_name = $_POST['branch_name']; 
+    $description = $_POST['description']; 
+    $email = $_POST['email']; 
+    $user_id = $_SESSION['user_id']; 
+ 
+    $menu_name = $_FILES['menu']['name']; 
+    $menu_tmp = $_FILES['menu']['tmp_name']; 
+    $phone_name = $_FILES['phone']['name']; 
+    $phone_tmp = $_FILES['phone']['tmp_name']; 
+    $image_name = $_FILES['image']['name']; 
+    $image_tmp = $_FILES['image']['tmp_name']; 
+ 
+    // Upload menu file 
+    $menu_folder = "menu/"; 
+    if (!empty($menu_name)) { 
+        if (!move_uploaded_file($menu_tmp, $menu_folder . $menu_name)) { 
+            echo "<script> 
+                alert('Menu File Not Uploaded'); 
+            </script>"; 
+            exit; 
+        } 
+    } 
+ 
+    // Upload image file 
+    $image_folder = "GYM/"; 
+    if (!empty($image_name)) { 
+        if (!move_uploaded_file($image_tmp, $image_folder . $image_name)) { 
+            echo "<script> 
+                alert('Image File Not Uploaded'); 
+            </script>"; 
+            exit; 
+        } 
+    } 
+ 
+    require 'conn.php'; 
+    $stmt = $conn->prepare("UPDATE gym SET branch_name = ?, description = ?, menu = ?, email = ?, phone = ?, image = ? WHERE id = ?"); 
+    $stmt->bind_param("ssssssi", $branch_name, $description, $menu_name, $email, $phone_name, $image_name, $gym_id); 
+    $result = $stmt->execute(); 
+ 
+    if ($result) { 
+        echo "<script> 
+            alert('GYM info Updated'); 
+            window.location = 'admin.php'; 
+        </script>"; 
+    } 
+} 
+?> 
+ 
+ 
+ 
+Header page  
+ 
+<?php session_start(); ?> 
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>CARAVAN</title> 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"> 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script> 
+</head> 
+ 
+ 
+<body> 
+  <style> 
+    body { 
+      background-image: url(gym/flex1.jpg); 
+      background-attachment: fixed; 
+      background-position: center; 
+      background-size: cover; 
+      background-repeat: no-repeat; 
+    } 
+  </style> 
+  <nav class="navbar navbar-expand-lg navbar-light bg-light"> 
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation"> 
+      <span class="navbar-toggler-icon"></span> 
+    </button> 
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo01"> 
+      <a style="color:blue" class="navbar-brand" href="#">FLEX GYM</a> 
+      <ul class="navbar-nav mr-auto mt-2 mt-lg-0"> 
+        <li class="nav-item active"> 
+          <a class="nav-link" href="index.php">Home<span class="sr-only">(current)</span></a> 
+        </li> 
+ 
+        <?php if (isset($_SESSION['user_type'])) { 
+          if ($_SESSION['user_type'] == 1) {  // seller  
+        ?> 
+ 
+            <li class="nav-item active"> 
+              <a class="nav-link" href="admin.php">FLEX GYM <span class="sr-only">(current)</span></a> 
+            </li> 
+            <li class="nav-item active"> 
+              <a class="nav-link" href="javascript:void(0);" onclick="openInFront();">GOOGLE MAP<span class="sr-only">(current)</span></a> 
+            </li> 
+ 
+            <script> 
+              function openInFront() { 
+                var left = window.screenX + 10; 
+                var top = window.screenY + 10; 
+                window.open('https://www.google.com/maps', '_blank', 'left=' + left + ',top=' + top); 
+              } 
+            </script> 
+ 
+          <?php } else {  ?> 
+ 
+            <li class="nav-item active"> 
+              <a class="nav-link" href="user.php">FLEX GYM <span class="sr-only">(current)</span></a> 
+            </li> 
+            <li class="nav-item active"> 
+              <a class="nav-link" href="javascript:void(0);" onclick="openInFront();">GOOGLE MAP<span class="sr-only">(current)</span></a> 
+            </li> 
+ 
+            <script> 
+              function openInFront() { 
+                var left = window.screenX + 10; 
+                var top = window.screenY + 10; 
+                window.open('https://www.google.com/maps', '_blank', 'left=' + left + ',top=' + top); 
+              } 
+            </script> 
+ 
+        <?php  } 
+        } 
+        ?> 
+ 
+      </ul> 
+ 
+ 
+      <?php if (isset($_SESSION['user_type'])) {  ?> 
+        <div class="float-right"> 
+          <ul class="nav justify-content-end"> 
+ 
+            <li class="nav-item active"> 
+              <a class="nav-link text-danger" href="logout.php">Logout <span class="sr-only">(current)</span></a> 
+            </li> 
+          </ul> 
+        </div> 
+ 
+      <?php } else { ?> 
+        <div class="float-right"> 
+          <ul class="navbar-nav float-right"> 
+            <li class="nav-item active"> 
+              <a class="nav-link f" href="login.php">Login</a> 
+            </li> 
+            <li class="nav-item active"> 
+              <a class="nav-link" href="register.php">Register</a> 
+            </li> 
+          </ul> 
+        </div> 
+      <?php } ?> 
+    </div> 
+  </nav> 
+ 
+ 
+ 
+Index page  
+ 
+<?php require 'header.php'; ?> 
+ 
+<!DOCTYPE> 
+<html> 
+<style> 
+    .footer { 
+      background-color: #f8f9fa; 
+      padding: 20px; 
+      text-align: center; 
+      position: fixed; 
+      bottom: 0; 
+      width: 100%; 
+    } 
+  </style> 
+<h1 style="color:red;background-color: aliceblue" class="text-center mt-5">WELCOME </h1> 
+<h2 style="background-color: red;color:aliceblue" class="text-center mt-5"> Flex GYM </h2> 
+ 
+ 
+<footer class="footer mt-5"> 
+<p>&copy; 2024 Flex GYM Web App. All rights reserved.</p> 
+</footer> 
+</body> 
+ 
+</html> 
+ 
+ 
+ 
+Login page  
+ 
+<?php require 'header.php'; ?> 
+ 
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <link rel="stylesheet" href="css/style.css"> 
+  <title>Login</title> 
+</head> 
+ 
+<body> 
+  <main> 
+    <form method="POST"> 
+      <h1>login</h1> 
+ 
+      <div> 
+        <label for="email">Email:</label> 
+        <input type="email" name="email" id="email"> 
+      </div> 
+      <div> 
+        <label for="password">Password:</label> 
+        <input type="password" name="password" id="password"> 
+      </div> 
+ 
+      <button type="submit" name="login">Login</button> 
+ 
+    </form> 
+  </main> 
+  <footer class="footer mt-5"> 
+    <p>&copy; 2024 Flex GYM Web App. All rights reserved.</p> 
+  </footer> 
+</body> 
+ 
+</html> 
+ 
+<?php 
+ 
+ 
+ 
+if (isset($_POST['login'])) { 
+ 
+  $email = $_POST['email']; 
+  $pass = $_POST['password']; 
+ 
+ 
+  require 'conn.php'; 
+  $stmt = $conn->prepare("select * from users where email = ? and password = ?"); 
+  $stmt->bind_param("ss", $email, $pass); 
+  $stmt->execute(); 
+  $stmt->store_result(); 
+  $stmt->num_rows(); 
+ 
+  if ($stmt->num_rows() > 0) { 
+ 
+    $stmt->execute(); 
+    $result = $stmt->get_result(); 
+ 
+    if ($row = $result->fetch_assoc()) { 
+      $user_type = $row['user_type']; 
+ 
+      $_SESSION['user_id'] = $row['id']; 
+      $_SESSION['user_name'] = $row['name']; 
+      $_SESSION['user_type'] = $user_type; 
+ 
+      if ($user_type == 1) { 
+ 
+        header('Location:admin.php'); 
+      } else { 
+        header('Location:user.php'); 
+      } 
+    } 
+  } else { 
+    echo "<script> alert('Wrong Email Or Password');</script>"; 
+  } 
+} 
+ 
+ 
+?> 
+ 
+ 
+ 
+Logout page 
+ 
+ <?php 
+session_start(); 
+session_unset(); 
+session_destroy(); 
+header("Location:index.php"); 
+?> 
+ 
+ 
+ 
+Order page 
+ 
+<?php require 'header.php'; ?> 
+ 
+ 
+<?php 
+require 'conn.php'; 
+ 
+$sql = "select *  from gym"; 
+$stmt = $conn->query($sql); 
+while ($row = $stmt->fetch_assoc()) { 
+    $gyms[] = $row; 
+} 
+ 
+?> 
+ 
+<style> 
+    .table { 
+        border-collapse: collapse; 
+        margin: 25px 0; 
+        font-size: 0.9em; 
+        font-family: comic; 
+        min-width: 400px; 
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); 
+ 
+    } 
+ 
+    .table thead tr { 
+        background-color: blue; 
+        color: #ffffff; 
+        text-align: left; 
+    } 
+ 
+ 
+    .table td { 
+        padding: 12px 15px; 
+        background-color: whitesmoke; 
+        color: black; 
+        text-align: left; 
+    } 
+ 
+    .table tbody tr { 
+        border-bottom: 1px solid #dddddd; 
+    } 
+ 
+    .table tbody tr:nth-of-type(even) { 
+        background-color: #f3f3f3; 
+    } 
+ 
+    .table tbody tr:last-of-type { 
+        border-bottom: 2px solid blue; 
+    } 
+ 
+    .table tbody tr.active-row { 
+        font-weight: bold; 
+        color: blue; 
+    } 
+</style> 
+<div class="container"> 
+ 
+    <h3 style="color:blue;background-color:aliceblue;" class="text-center mt-5"> Request For Membership </h3> 
+    <form method="POST" enctype="multipart/form-data"> 
+        <table class="table"> 
+            <div class="row justify-content-center"> 
+                <thead style="background-color:blue"> 
+                    <tr> 
+ 
+                        <th>NAME</th> 
+                        <th>LOCATION</th> 
+                        <th>PHONE</th> 
+                        <th>BRANCH NAME</th> 
+                        <th>ACTION</th> 
+                    </tr> 
+                </thead> 
+                <tbody style="background-color:darkgrey"> 
+                    <tr> 
+                        <td> <input type="text" id="name" name="name"> </td> 
+                        <td> <input type="text" id="location" name="location"> </td> 
+                        <td> <input type="phone" id="phone" name="phone"> </td> 
+                        <td> 
+                            <select name="branch_name" id="branch_name" required> 
+                                <option>BRANCH NAME</option> 
+                                <?php foreach ($gyms as $gym) : ?> 
+                                    <option value="<?php echo $gym['id'] ?>"><?php echo $gym['branch_name']; ?></option> 
+                                <?php endforeach ?> 
+ 
+                            </select> 
+                        </td> 
+                        <td> 
+                            <button type="submit" name="add" class="btn btn-success">ORDER</button> 
+                        </td> 
+ 
+                    </tr> 
+ 
+ 
+                </tbody> 
+        </table> 
+    </form> 
+ 
+ 
+</div> 
+</body> 
+ 
+</html> 
+<?php 
+if (isset($_POST['add'])) { 
+    $gym_id = $_POST['branch_name']; 
+    $name = $_POST['name']; 
+    $location = $_POST['location']; 
+    $phone = $_POST['phone']; 
+ 
+    require 'conn.php'; 
+    $stmt = $conn->prepare("INSERT INTO orders (name, gym_id, location, phone) VALUES (?, ?, ?, ?)"); 
+    $stmt->bind_param("ssss", $name, $gym_id, $location, $phone); 
+    $result = $stmt->execute(); 
+ 
+    if ($result) { 
+        echo "<script> 
+            alert('Your order has been added. We will contact you soon.'); 
+            window.location = 'user.php'; 
+        </script>"; 
+    } 
+} 
+?> 
+ 
+ 
+ 
+Register page 
+ 
+<?php require 'header.php'; ?> 
+ 
+<?php 
+require 'conn.php'; 
+ 
+$sql = "select *  from roles"; 
+$stmt = $conn->query($sql); 
+while ($row = $stmt->fetch_assoc()) { 
+    $roles[] = $row; 
+} 
+ 
+?> 
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <link rel="stylesheet" href="css/style.css"> 
+    <title>sign up</title> 
+</head> 
+ 
+<body> 
+    <main> 
+ 
+        <form action="register.php" method="post"> 
+            <h1>Sign Up</h1> 
+            <div> 
+                <label for="name">Name:</label> 
+                <input type="text" name="name" id="name"> 
+            </div> 
+            <div> 
+                <label for="email">Email:</label> 
+                <input type="email" name="email" id="email"> 
+            </div> 
+            <div> 
+                <div> 
+                    <label for="phone">Phone:</label> 
+                    <input type="phone" name="phone" id="phone"> 
+                </div> 
+                <label for="password">Password:</label> 
+                <input type="password" name="password" id="password"> 
+            </div> 
+            <button type="submit" name="register">Register</button> 
+            <footer>Already a member? <a href="login.php">Login here</a></footer> 
+        </form> 
+    </main> 
+    <footer class="footer mt-5"> 
+        <p>&copy; 2024 Flex GYM Web App. All rights reserved.</p> 
+    </footer> 
+</body> 
+ 
+</html> 
+ 
+<?php 
+ 
+ 
+ 
+if (isset($_POST['register'])) { 
+ 
+ 
+    $name = $_POST['name']; 
+    $email = $_POST['email']; 
+    $pass = $_POST['password']; 
+    $phone = $_POST['phone']; 
+ 
+    require 'conn.php'; 
+    $stmt =   $conn->prepare("insert into users (name , email , password , phone ) values(? , ? , ? , ? ); "); 
+ 
+    $stmt->bind_param("ssss", $name, $email, $pass, $phone); 
+    $result = $stmt->execute(); 
+ 
+    if ($result) { 
+        echo "<script> 
+            alert('User Added'); 
+            window.location = 'login.php'; 
+        </script>"; 
+    } 
+} 
+ 
+ 
+?> 
+ 
+ 
+ 
+User page 
+ 
+<?php require 'header.php'; ?> 
+<?php 
+require 'conn.php'; 
+$sql = "select *  from gym"; 
+$stmt = $conn->query($sql); 
+$gyms = []; 
+while ($row = $stmt->fetch_assoc()) { 
+    $gyms[] = $row; 
+} 
+ 
+?> 
+ 
+<div class="container"> 
+    <h3 style="color:blue;background-color:aliceblue;" class="text-center mt-5">GYMS List</h3> 
+    <style> 
+        .table { 
+            border-collapse: collapse; 
+            margin: 25px 0; 
+            font-size: 0.9em; 
+            font-family: comic; 
+            min-width: 400px; 
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); 
+ 
+        } 
+ 
+        .table thead tr { 
+            background-color: blue; 
+            color: #ffffff; 
+            text-align: left; 
+        } 
+ 
+ 
+        .table td { 
+            padding: 12px 15px; 
+            background-color: whitesmoke; 
+            color: black; 
+            text-align: left; 
+        } 
+ 
+        .table tbody tr { 
+            border-bottom: 1px solid #dddddd; 
+        } 
+ 
+        .table tbody tr:nth-of-type(even) { 
+            background-color: #f3f3f3; 
+        } 
+ 
+        .table tbody tr:last-of-type { 
+            border-bottom: 2px solid blue; 
+        } 
+ 
+        .table tbody tr.active-row { 
+            font-weight: bold; 
+            color: blue; 
+        } 
+    </style> 
+    <table class="table"> 
+        <thead> 
+            <tr> 
+                <th>BRANCH NAME</th> 
+                <th>DESCRIPTION</th> 
+                <th>MENU</th> 
+                <th>PHONE</th> 
+                <th>EMAIL</th> 
+                <th>LOGO</th> 
+                <th>ACTION</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+ 
+ 
+ 
+            <?php foreach ($gyms as $gym) : ?> 
+                <tr> 
+                    <td> <?php echo $gym['branch_name'] ?> </td> 
+                    <td> <?php echo $gym['description'] ?> </td> 
+                    <td> 
+                        <a href="GYM/<?php echo $gym['menu']; ?>" download>Download Menu</a> 
+                    </td> 
+ 
+                    <td> <?php echo $gym['phone'] ?> </td> 
+                    <td> <?php echo $gym['email'] ?> </td> 
+ 
+                    <td> 
+                        <img width="150" height="100" src="GYM/<?php echo $gym['image'] ?>" class="rounded-circle" alt="Cinque Terre"> </img> 
+                    </td> 
+                    <td> 
+                        <a class="btn btn-warning text-white" href="order.php?id=<?php echo $gym['id'] ?>" role="button">Order</a> 
+                    </td> 
+                </tr> 
+            <?php endforeach ?> 
+ 
+ 
+        </tbody> 
+    </table> 
+ 
+ 
+</div> 
+</body> 
+ 
+</html> 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+View Request page 
+ 
+<?php require 'header.php'; ?> 
+ 
+<?php 
+require 'conn.php'; 
+ 
+// Fetch ordered gyms 
+$sql = "SELECT o.*, c.branch_name FROM orders o INNER JOIN gym c ON o.gym_id = c.id"; 
+$result = $conn->query($sql); 
+$orders = []; 
+if ($result && $result->num_rows > 0) { 
+    while ($row = $result->fetch_assoc()) { 
+        $orders[] = $row; 
+    } 
+} 
+?> 
+<style> 
+    .table { 
+        border-collapse: collapse; 
+        margin: 25px 0; 
+        font-size: 0.9em; 
+        font-family: comic; 
+        min-width: 400px; 
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); 
+ 
+    } 
+ 
+    .table thead tr { 
+        background-color: blue; 
+        color: #ffffff; 
+        text-align: left; 
+    } 
+ 
+ 
+    .table td { 
+        padding: 12px 15px; 
+        background-color: whitesmoke; 
+        color: black; 
+        text-align: left; 
+    } 
+ 
+    .table tbody tr { 
+        border-bottom: 1px solid #dddddd; 
+    } 
+ 
+    .table tbody tr:nth-of-type(even) { 
+        background-color: #f3f3f3; 
+    } 
+ 
+    .table tbody tr:last-of-type { 
+        border-bottom: 2px solid blue; 
+    } 
+ 
+    .table tbody tr.active-row { 
+        font-weight: bold; 
+        color: blue; 
+    } 
+</style> 
+<div class="container"> 
+    <h3 style="color: blue; background-color: aliceblue;" class="text-center mt-5">Membership Ordered</h3> 
+    <table class="table"> 
+        <thead style="background-color: blue;"> 
+            <tr> 
+                <th>Name</th> 
+                <th>Location</th> 
+                <th>Phone</th> 
+                <th>Branch Name</th> 
+                <th>Order Date</th> 
+            </tr> 
+        </thead> 
+        <tbody style="background-color: darkgrey;"> 
+            <?php foreach ($orders as $order) : ?> 
+                <tr> 
+                    <td><?php echo $order['name']; ?></td> 
+                    <td> 
+                        <a href="<?php echo $order['location']; ?>" target="_blank" class="btn btn-primary">Open Location</a> 
+                    </td> 
+                    <td><?php echo $order['phone']; ?></td> 
+                    <td><?php echo $order['branch_name']; ?></td> 
+                    <td><?php echo $order['order_date']; ?></td> 
+                </tr> 
+            <?php endforeach; ?> 
+        </tbody> 
+    </table> 
+</div> 
+ 
+</body> 
+ 
+</html> 
+ 
